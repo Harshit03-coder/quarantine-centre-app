@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quarantine Centre Tracker v2</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f5f6f8;--card:#fff;--tx:#1b2430;--mu:#667085;--bd:#dde1e7;--pr:#1f6feb;--ok:#1a7f4b;--okb:#e3f5ea;--wa:#9a6700;--wab:#fff4d6;--er:#c0262d;--erb:#fde7e8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151a;--card:#1b2028;--tx:#e8ecf2;--mu:#9aa4b2;--bd:#2d3440;--pr:#5b9bff;--ok:#4cc38a;--okb:#143324;--wa:#e3b341;--wab:#3a2e0e;--er:#ff7b80;--erb:#3b1719}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card);border-bottom:1px solid var(--bd)}
+h1{font-size:17px;margin:0}main{max-width:1050px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+button,select,input,textarea{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:7px;padding:6px 10px}
+button{cursor:pointer}button.p{background:var(--pr);color:#fff;border-color:var(--pr)}button.on{border-color:var(--pr);color:var(--pr);font-weight:600}button:disabled{opacity:.45;cursor:not-allowed}
+button.w{border-color:var(--wa);color:var(--wa)}button.d{border-color:var(--er);color:var(--er)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mu);font-weight:600;font-size:13px}
+.b{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600}.ok{background:var(--okb);color:var(--ok)}.wa{background:var(--wab);color:var(--wa)}.er{background:var(--erb);color:var(--er)}.mu{background:var(--bd);color:var(--mu)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.st{padding:12px;border:1px solid var(--bd);border-radius:10px;background:var(--card)}.st b{display:block;font-size:24px}.st span{color:var(--mu);font-size:13px}
+.beds{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}.bed{padding:6px 2px;text-align:center;border-radius:7px;font-size:12px;border:1px solid var(--bd)}.bed.f{background:var(--okb);color:var(--ok)}.bed.o{background:var(--erb);color:var(--er)}
+#m{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:14px;z-index:20}#m>div{background:var(--card);border-radius:12px;padding:16px;width:100%;max-width:480px;max-height:90%;overflow:auto}
+label{display:block;margin:8px 0 3px;font-size:13px;color:var(--mu)}input,textarea,select{width:100%}
+#t{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;max-width:90%;padding:10px 14px;border-radius:9px;color:#fff;z-index:30;display:none}
+.banner{padding:8px 10px;border-radius:8px;margin:8px 0;font-size:14px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}h2{font-size:16px;margin:0 0 10px}small{color:var(--mu)}
+.clk{cursor:pointer}tr.clk:hover{background:var(--bg)}.st.clk:hover{border-color:var(--pr)}
+.side{display:none;position:fixed;top:0;right:0;bottom:0;width:min(400px,100%);background:var(--card);border-left:1px solid var(--bd);padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));overflow:auto;z-index:15;box-shadow:-4px 0 18px #0003}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}.spark{display:flex;align-items:flex-end;gap:4px;height:60px;margin:8px 0}
+</style></head><body>
+<div id="app"></div><div id="m"></div><div id="t"></div><div id="s" class="side"></div>
+<script>
+const $=id=>document.getElementById(id);
+const D=o=>new Date(Date.now()-o*864e5).toISOString().slice(0,10),TD=D(0),FEV=38;
+const NOW=()=>new Date().toLocaleString();
+const BEDS=[];for(let r=101;r<=137;r++){BEDS.push(r+'-A',r+'-B')}
+let S={role:null,name:'',tab:'',q:'',qt:'all',f1:'all',f2:'all',f3:'all',so:'priority',pg:1,sel:null,aq:'',ast:'all',asort:'new',ap:1},P=[],LOG=[],BASE={c:34,d:6},NID=2000;
+const F=['Aarav','Priya','Rohan','Meera','Kabir','Ananya','Vikram','Sana','Arjun','Isha','Dev','Nisha','Rahul','Kavya','Imran','Tara','Nikhil','Pooja','Sameer','Diya'],L=['Sharma','Patel','Verma','Khan','Joshi','Mehta','Singh','Iyer','Gupta','Rao'];
+function seed(){for(let i=0;i<74;i++){const rec=i%5>1,st=i%6,o=[];for(let k=6;k>=(rec?0:1);k--)if(!(i%11==3&&k==3))o.push(k);
+const temps=o.map((k,j)=>({day:D(k),val:+((o.length-1-j<st)?36.5+((i+j)%8)/10:38.3+((i*j)%15)/10).toFixed(1),by:i%2?'Nurse Anita':'Nurse Ravi',time:D(k)}));
+const p={id:'P-'+(1001+i),name:F[i%20]+' '+L[(i*7)%10],age:20+(i*7)%55,bed:BEDS[i],st:'admitted',temps,visits:[],treatment:'Fluids, paracetamol',rec:false};
+if(rec&&i%3==0)p.visits.push({day:TD,by:'Dr. Mehra',note:'Stable, continue plan',urgent:false});
+P.push(p);}P.forEach(p=>{if(elig(p)&&p.id.slice(-1)%2==0)p.rec=true})}
+const eff=(p,d)=>{const e=p.temps.filter(t=>t.day==d);return e[e.length-1]};
+const hasT=p=>!!eff(p,TD),visited=p=>p.visits.some(v=>v.day==TD);
+function streak(p){let o=hasT(p)?0:1,c=0;while(1){const e=eff(p,D(o));if(!e||e.val>=FEV)break;c++;o++}return c}
+const elig=p=>p.st=='admitted'&&hasT(p)&&streak(p)>=3;
+const adm=()=>P.filter(p=>p.st=='admitted'),free=()=>BEDS.filter(b=>!adm().some(p=>p.bed==b));
+const log=a=>LOG.unshift({t:NOW(),u:S.name+' ('+S.role+')',a});
+const can=r=>{if(S.role!=r){toast('Not allowed: this action is for '+r+'s only','er');return false}return true};
+function toast(m,k){const t=$('t');t.textContent=m;t.style.background=k=='er'?'#c0262d':k=='wa'?'#9a6700':'#1a7f4b';t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3200)}
+const modal=h=>{$('m').innerHTML='<div>'+h+'</div>';$('m').style.display='flex'},close=()=>{$('m').style.display='none'},closeM=close;
+const bd=(t,k)=>`<span class="b ${k}">${t}</span>`;
+function login(){const r=$('r').value;S.role=r;S.name=$('n').value.trim()||r;S.tab={nurse:'list',doctor:'list',admin:'pat',manager:'dash'}[r];log('Logged in');render()}
+function render(){
+if(!S.role){const nm={nurse:'Anita',doctor:'Dr. Mehra',admin:'Admin Rao',manager:'Manager Shah'};
+$('app').innerHTML=`<main><div class="card" style="max-width:380px;margin:40px auto"><h1>Quarantine Centre Tracker</h1><small>Prototype login (demo, no password)</small><label>Role</label><select id="r" onchange="$('n').value=({nurse:'Nurse Anita',doctor:'Dr. Mehra',admin:'Admin Rao',manager:'Manager Shah'})[this.value]"><option value="nurse">Nurse</option><option value="doctor">Doctor</option><option value="admin">Administrator</option><option value="manager">Manager</option></select><label>Your name</label><input id="n" value="Nurse Anita"><p><button class="p" onclick="login()">Sign in</button></p></div></main>`;return}
+const T={nurse:[['list','Patients']],doctor:[['list','Patients']],admin:[['pat','Patients & admission'],['beds','Beds'],['dis','Discharge']],manager:[['dash','Dashboard'],['audit','Audit log']]}[S.role];
+if(S.role!='manager')T.push(['audit','Audit log']);
+const pend=adm().filter(p=>!hasT(p)).length,pv=adm().filter(p=>hasT(p)&&!visited(p)).length,el=adm().filter(elig).length;
+$('app').innerHTML=`<header><h1>Quarantine Centre · ${S.role}</h1><div class="row"><small>${S.name} · ${adm().length}/74 beds</small><button onclick="S.role=null;S.sel=null;$('s').style.display='none';render()">Switch user</button></div></header><main>
+<div class="row" style="margin-bottom:12px">${bd('⚠ '+pend+' temperatures pending',pend?'wa':'ok')}${bd('⚠ '+pv+' doctor visits pending',pv?'wa':'ok')}${bd(el+' eligible for discharge',el?'ok':'mu')}</div>
+<div class="tabs">${T.map(t=>`<button class="${S.tab==t[0]?'on':''}" onclick="S.tab='${t[0]}';render()">${t[1]}</button>`).join('')}</div><div id="v"></div></main>`;
+$('v').innerHTML=VIEW[S.tab]?VIEW[S.tab]():'';drawSide()}
+const status=p=>{const e=eff(p,TD);return e?bd(e.val+' °C'+(e.val>=FEV?' fever':''),e.val>=FEV?'er':'ok'):bd('Pending','wa')};
+const sk=p=>`${Math.min(streak(p),3)}/3 ${elig(p)?bd('eligible','ok'):''}`;
+const fv=p=>{const e=eff(p,TD);return !!e&&e.val>=FEV},dp=p=>p.st=='admitted'&&hasT(p)&&!visited(p),tv=p=>{const e=eff(p,TD);return e?e.val:-1};
+const attn=p=>S.role=='nurse'?(!hasT(p)||fv(p)):(fv(p)||dp(p)||(elig(p)&&!p.rec));
+const pr=p=>fv(p)?0:S.role=='nurse'?(!hasT(p)?1:3):dp(p)?1:(elig(p)&&!p.rec)?2:!hasT(p)?4:3;
+const QT={all:()=>1,attn,fev:fv,docp:dp,el:elig};
+const CMP={priority:(x,y)=>pr(x)-pr(y)||x.bed.localeCompare(y.bed),bed:(x,y)=>x.bed.localeCompare(y.bed),temp:(x,y)=>tv(y)-tv(x),rec:(x,y)=>streak(y)-streak(x),visit:(x,y)=>(+dp(y)-+dp(x))||x.bed.localeCompare(y.bed)};
+const fd=p=>Math.min(streak(p),3)+'/3 '+(hasT(p)?(elig(p)?bd('eligible','ok'):''):bd('today pending','wa'));
+const vs=p=>visited(p)?bd('Visited','ok'):hasT(p)?bd('Pending','wa'):bd('Waiting for temp','mu');
+const qf=(t,f)=>{S.qt=t;S.f1=f;S.pg=1;render()},rl=()=>{$('lt').innerHTML=listBody()};
+function listBody(){const n=S.role=='nurse',q=S.q.toLowerCase();
+let a=adm().filter(p=>(!q||(p.name+' '+p.id+' '+p.bed).toLowerCase().includes(q))&&(S.f1=='all'||(S.f1=='pending')==!hasT(p))&&(S.f2=='all'||(S.f2=='visited')==visited(p))&&(S.f3=='all'||(S.f3=='0'?streak(p)==0:S.f3=='12'?streak(p)>0&&streak(p)<3:streak(p)>=3))&&QT[S.qt](p));
+a.sort(CMP[S.so]);const N=15,pages=Math.max(1,Math.ceil(a.length/N));S.pg=Math.min(S.pg,pages);const st=(S.pg-1)*N,pg=a.slice(st,st+N);
+let h=`<div class="tw"><table><tr><th>Bed</th><th>Patient</th><th>Today’s temperature</th><th>Fever-free days (confirmed)</th><th>Doctor visit</th><th>Actions</th></tr>`;
+pg.forEach(p=>{h+=`<tr class="clk" onclick="hist('${p.id}')"><td>${p.bed}</td><td>${p.name} <small>${p.id}</small></td><td>${status(p)}</td><td>${fd(p)}</td><td>${vs(p)}</td><td>${n?`<button class="p" onclick="event.stopPropagation();recForm('${p.id}')">Record temp</button>`:`${hasT(p)?`<button class="p" onclick="event.stopPropagation();visit('${p.id}',0)">Visit</button>`:`<button class="w" onclick="event.stopPropagation();visit('${p.id}',1)">Urgent visit</button>`} ${p.rec?bd('Recommended','ok'):`<button ${elig(p)?'':'disabled'} onclick="event.stopPropagation();recommend('${p.id}')">Recommend discharge</button>`}`}</td></tr>`});
+if(!pg.length)h+='<tr><td colspan="6"><small>No patients match these filters.</small></td></tr>';
+return h+`</table></div><div class="row" style="justify-content:space-between;margin-top:10px"><small>${a.length?st+1:0}–${Math.min(st+N,a.length)} of ${a.length} patients</small><div class="row"><button ${S.pg<2?'disabled':''} onclick="S.pg--;rl()">‹ Prev</button><small>Page ${S.pg}/${pages}</small><button ${S.pg>=pages?'disabled':''} onclick="S.pg++;rl()">Next ›</button></div></div>`}
+const ar=()=>{$('at').innerHTML=recBody()};
+function recBody(){const q=S.aq.toLowerCase();let a=P.filter(p=>(!q||(p.name+' '+p.id+' '+(p.bed||'')).toLowerCase().includes(q))&&(S.ast=='all'||p.st==S.ast));
+if(S.asort=='name')a.sort((x,y)=>x.name.localeCompare(y.name));else if(S.asort=='bed')a.sort((x,y)=>(x.bed||'zzz').localeCompare(y.bed||'zzz'));else a.reverse();
+const N=15,pages=Math.max(1,Math.ceil(a.length/N));S.ap=Math.min(S.ap,pages);const st=(S.ap-1)*N,pg=a.slice(st,st+N);
+return `<div class="tw"><table><tr><th>ID</th><th>Patient</th><th>Age</th><th>Bed</th><th>Status</th><th></th></tr>${pg.map(p=>`<tr class="clk" onclick="hist('${p.id}')"><td>${p.id}</td><td>${p.name}</td><td>${p.age}</td><td>${p.bed||'-'}</td><td>${p.st=='admitted'?bd('Admitted','wa'):p.st=='discharged'?bd('Discharged','ok'):bd('Deceased','er')}</td><td><button onclick="event.stopPropagation();hist('${p.id}')">Details</button></td></tr>`).join('')||'<tr><td colspan="6"><small>No patients match these filters.</small></td></tr>'}</table></div><div class="row" style="justify-content:space-between;margin-top:10px"><small>${a.length?st+1:0}–${Math.min(st+N,a.length)} of ${a.length} records</small><div class="row"><button ${S.ap<2?'disabled':''} onclick="S.ap--;ar()">‹ Prev</button><small>Page ${S.ap}/${pages}</small><button ${S.ap>=pages?'disabled':''} onclick="S.ap++;ar()">Next ›</button></div></div>`}
+const VIEW={
+list(){const a=adm();
+const cd=(t,v,k,f)=>`<div class="st clk" onclick="${f}"><b${k}>${v}</b><span>${t}</span></div>`;
+const tabs=[['all','All',a.length],['attn','Needs attention',a.filter(attn).length],['fev','Fever',a.filter(fv).length],['docp','Doctor pending',a.filter(dp).length],['el','Discharge eligible',a.filter(elig).length]];
+const op=(v,c,t)=>`<option value="${v}" ${c==v?'selected':''}>${t}</option>`;
+return `<div class="grid" style="margin-bottom:12px">${cd('Admitted',a.length,'',"qf('all','all')")}${cd('Temperature pending',a.filter(p=>!hasT(p)).length,' style="color:var(--wa)"',"qf('all','pending')")}${cd('Fever today',a.filter(fv).length,' style="color:var(--er)"',"qf('fev','all')")}${cd('Doctor visit pending',a.filter(dp).length,' style="color:var(--wa)"',"qf('docp','all')")}${cd('Discharge eligible',a.filter(elig).length,' style="color:var(--ok)"',"qf('el','all')")}</div>
+<div class="card"><div class="tabs">${tabs.map(t=>`<button class="${S.qt==t[0]?'on':''}" onclick="qf('${t[0]}',S.f1)">${t[1]} (${t[2]})</button>`).join('')}</div>
+<div class="row" style="margin-bottom:10px"><input style="flex:2;min-width:150px" placeholder="Search name, ID or bed" value="${S.q.replace(/"/g,'&quot;')}" oninput="S.q=this.value;S.pg=1;rl()">
+<select style="flex:1;min-width:130px" onchange="S.f1=this.value;S.pg=1;render()">${op('all',S.f1,'Temp: all')}${op('recorded',S.f1,'Temp recorded')}${op('pending',S.f1,'Temp pending')}</select>
+<select style="flex:1;min-width:130px" onchange="S.f2=this.value;S.pg=1;render()">${op('all',S.f2,'Visit: all')}${op('visited',S.f2,'Visited')}${op('notvisited',S.f2,'Not visited')}</select>
+<select style="flex:1;min-width:130px" onchange="S.f3=this.value;S.pg=1;render()">${op('all',S.f3,'Recovery: all')}${op('0',S.f3,'0 fever-free days')}${op('12',S.f3,'1–2 days')}${op('3',S.f3,'3+ days')}</select>
+<select style="flex:1;min-width:150px" onchange="S.so=this.value;S.pg=1;render()">${op('priority',S.so,'Sort: priority')}${op('bed',S.so,'Sort: bed')}${op('temp',S.so,'Sort: temperature')}${op('rec',S.so,'Sort: recovery days')}${op('visit',S.so,'Sort: doctor visit pending')}</select></div>
+<div id="lt">${listBody()}</div></div>`},
+pat(){const f=free().length;return `<div class="card"><h2>Admit new patient</h2>${f?'':'<div class="banner er">Facility is full (74/74). Discharge a patient before admitting a new one.</div>'}<div class="row"><input id="an" placeholder="Full name" style="flex:2;min-width:140px"><input id="aa" type="number" placeholder="Age" style="flex:1;min-width:70px"><select id="ab" style="flex:1;min-width:110px">${free().map(b=>`<option>${b}</option>`).join('')||'<option value="">No beds</option>'}</select><button class="p" ${f?'':'disabled'} onclick="admit()">Admit</button></div><small>${f} beds available. Patient ID is generated automatically and is unique.</small></div>
+<div class="card"><h2>Patient records (${P.length})</h2><div class="row" style="margin-bottom:10px"><input style="flex:2;min-width:150px" placeholder="Search name, ID or bed" value="${S.aq.replace(/"/g,'&quot;')}" oninput="S.aq=this.value;S.ap=1;ar()"><select style="flex:1;min-width:130px" onchange="S.ast=this.value;S.ap=1;render()">${[['all','Status: all'],['admitted','Admitted'],['discharged','Discharged'],['deceased','Deceased']].map(o=>`<option value="${o[0]}" ${S.ast==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select><select style="flex:1;min-width:130px" onchange="S.asort=this.value;S.ap=1;render()">${[['new','Sort: newest first'],['name','Sort: name A–Z'],['bed','Sort: bed']].map(o=>`<option value="${o[0]}" ${S.asort==o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div><div id="at">${recBody()}</div></div>`},
+beds(){const u={};adm().forEach(p=>u[p.bed]=p);return `<div class="card"><h2>Bed map · ${free().length} free of 74</h2><div class="beds">${BEDS.map(b=>u[b]?`<div class="bed o" title="${u[b].name}">${b}<br>${u[b].name.split(' ')[0]}</div>`:`<div class="bed f">${b}<br>free</div>`).join('')}</div></div>`},
+dis(){const a=adm().filter(elig);return `<div class="card"><h2>Patients eligible for discharge (3 fever-free days)</h2>${a.length?'':'<small>None right now.</small>'}<div class="tw"><table>${a.map(p=>`<tr><td>${p.name} <small>${p.bed}</small></td><td>${p.rec?bd('Doctor recommended','ok'):bd('Awaiting doctor approval','wa')}</td><td><button class="p" ${p.rec?'':'disabled'} onclick="discharge('${p.id}')">Complete discharge</button></td></tr>`).join('')}</table></div></div><div class="card"><h2>Record death</h2><small>Select a patient to close their record as deceased.</small><div class="row"><select id="dp">${adm().map(p=>`<option value="${p.id}">${p.name} (${p.bed})</option>`).join('')}</select><button class="d" onclick="death()">Record death</button></div></div>`},
+dash(){const a=adm(),n=a.length,tr=a.filter(hasT).length,vr=a.filter(p=>hasT(p)&&visited(p)).length,rd=a.filter(hasT).length;
+const dc=BASE.c+P.filter(p=>p.st=='discharged').length,dd=BASE.d+P.filter(p=>p.st=='deceased').length,tot=dc+dd,mr=tot?dd/tot*100:0,sr=100-mr;
+const tally=(k)=>{const m={};P.forEach(p=>{p.temps.filter(t=>t.day==TD).forEach(t=>{if(k=='n')m[t.by]=(m[t.by]||0)+1});p.visits.filter(v=>v.day==TD).forEach(v=>{if(k=='d')m[v.by]=(m[v.by]||0)+1})});return Object.entries(m).map(e=>e[0]+': '+e[1]).join(' · ')||'none yet'};
+return `<div class="grid"><div class="st"><b>${n}</b><span>Admitted (74 beds)</span></div><div class="st"><b>${free().length}</b><span>Beds available</span></div><div class="st"><b>${a.filter(elig).length}</b><span>Eligible for discharge</span></div><div class="st"><b>${tot}</b><span>Closed cases</span></div></div><br>
+<div class="grid"><div class="st"><b style="color:var(${mr>15?'--er':'--ok'})">${mr.toFixed(1)}%</b><span>Mortality (benchmark 15%) ${mr>15?bd('above benchmark','er'):bd('within benchmark','ok')}</span></div><div class="st"><b style="color:var(${sr<85?'--er':'--ok'})">${sr.toFixed(1)}%</b><span>Success rate (benchmark 85%) ${sr<85?bd('below benchmark','er'):bd('on target','ok')}</span></div></div><br>
+<div class="card"><h2>Today’s task completion</h2><p>Nurses: temperatures recorded <b>${tr}/${n}</b> (${n?Math.round(tr/n*100):0}%) · ${tally('n')}</p><p>Doctors: visits completed <b>${vr}/${rd}</b> of patients with a temperature (${rd?Math.round(vr/rd*100):0}%) · ${tally('d')}</p><p>${bd((n-tr)+' temperatures pending',n-tr?'wa':'ok')} ${bd((rd-vr)+' visits pending',rd-vr?'wa':'ok')}</p></div>`},
+audit(){return `<div class="card"><h2>Audit log</h2><div class="tw"><table><tr><th>When</th><th>Who</th><th>Action</th></tr>${LOG.slice(0,80).map(l=>`<tr><td>${l.t}</td><td>${l.u}</td><td>${l.a}</td></tr>`).join('')}</table></div></div>`}};
+const G=id=>P.find(p=>p.id==id);
+function recForm(id){if(!can('nurse'))return;const p=G(id),e=eff(p,TD);
+modal(`<h2>Record temperature · ${p.name}</h2>${e?`<div class="banner wa">Today’s temperature (${e.val} °C) is already recorded. A second reading needs a reason.</div>`:''}<label>Temperature (°C)</label><input id="tv" type="number" step="0.1" min="34" max="43" placeholder="e.g. 37.4">${e?'<label>Reason for another reading</label><input id="tr" placeholder="e.g. rechecked after treatment">':''}<p class="row"><button class="p" onclick="saveTemp('${id}')">Save</button><button onclick="closeM()">Cancel</button></p>`)}
+function saveTemp(id){if(!can('nurse'))return;const p=G(id),v=parseFloat($('tv').value),e=eff(p,TD),r=$('tr')?$('tr').value.trim():'';
+if(isNaN(v)||v<34||v>43)return toast('Enter a valid temperature between 34 and 43 °C','er');
+if(e&&!r)return toast('Reason required for a repeat reading today','er');
+p.temps.push({day:TD,val:v,by:S.name,time:NOW(),reason:r});if(v>=FEV)p.rec=false;
+log(`Recorded ${v} °C for ${p.name}${r?' (reason: '+r+')':''}`);close();toast(v>=FEV?'Saved. Fever: no-fever count restarted':'Temperature saved','ok');render()}
+function hist(id){S.sel=id;render()}
+function drawSide(){const el=$('s'),p=S.sel&&S.role?G(S.sel):null;if(!p){el.style.display='none';return}
+const e=eff(p,TD),c=Math.min(streak(p),3),nu=S.role=='nurse',dr=S.role=='doctor'&&p.st=='admitted';
+el.style.display='block';
+el.innerHTML=`<div class="sh"><b style="font-size:17px">${p.name}</b><button onclick="S.sel=null;render()">✕ Close</button></div><small>${p.id} · Bed ${p.bed||'-'} · Age ${p.age} · ${p.st}</small>
+<div class="grid" style="margin:12px 0"><div class="st"><span>Today’s temperature</span><br>${status(p)}</div><div class="st"><span>Confirmed fever-free days</span><b>${c}/3</b></div></div>
+${!hasT(p)&&p.st=='admitted'?`<div class="banner wa">Today’s reading is pending, so today’s monitoring is not complete.${c?` ${c} earlier fever-free day(s) are confirmed, but the patient is not eligible for discharge until today’s temperature is recorded.`:''} A missing day is never counted as fever-free.</div>`:''}
+${elig(p)?`<div class="banner ok">3 full fever-free days confirmed${p.rec?'. Doctor has recommended discharge.':'. Waiting for doctor recommendation.'}</div>`:''}
+<p><small>Treatment:</small> ${p.treatment} · ${vs(p)}</p>
+<div class="row">${nu&&p.st=='admitted'?`<button class="p" onclick="recForm('${p.id}')">Record temp</button>`:''}${dr?`${hasT(p)?`<button class="p" onclick="visit('${p.id}',0)">Visit</button>`:`<button class="w" onclick="visit('${p.id}',1)">Urgent visit</button>`}<button ${elig(p)&&!p.rec?'':'disabled'} onclick="recommend('${p.id}')">Recommend discharge</button>`:''}</div>
+<h2 style="margin-top:14px">Temperature history</h2><div class="spark">${p.temps.slice(-10).map(t=>`<div title="${t.day}: ${t.val} °C" style="flex:1;height:${Math.max(4,(t.val-35)*10)}px;background:${t.val>=FEV?'var(--er)':'var(--ok)'};border-radius:3px"></div>`).join('')}</div>
+<div class="tw"><table>${p.temps.map((t,i)=>({t,i})).reverse().map(x=>`<tr><td>${x.t.day}</td><td>${bd(x.t.val+' °C',x.t.val>=FEV?'er':'ok')}</td><td><small>${x.t.by}${x.t.reason?' · '+x.t.reason:''}${x.t.edited?' · edited: '+x.t.edited:''}</small></td><td>${nu&&p.st=='admitted'?`<button onclick="editT('${p.id}',${x.i})">Edit</button>`:''}</td></tr>`).join('')||'<tr><td><small>No readings yet</small></td></tr>'}</table></div>
+<h2 style="margin-top:14px">Doctor notes</h2>${p.visits.slice().reverse().map(v=>`<p><small>${v.day} · ${v.by}${v.urgent?' · urgent':''}</small><br>${v.note}</p>`).join('')||'<small>None</small>'}`}
+function editT(id,i){if(!can('nurse'))return;const t=G(id).temps[i];modal(`<h2>Correct entry · ${t.day}</h2><label>Correct temperature (°C)</label><input id="ev" type="number" step="0.1" value="${t.val}"><label>Reason for correction (required)</label><input id="er"><p class="row"><button class="p" onclick="saveEdit('${id}',${i})">Update</button><button onclick="closeM()">Back</button></p>`)}
+function saveEdit(id,i){const p=G(id),v=parseFloat($('ev').value),r=$('er').value.trim();if(isNaN(v)||v<34||v>43)return toast('Invalid temperature','er');if(!r)return toast('A reason is required to update an entry','er');
+log(`Corrected ${p.name}'s ${p.temps[i].day} reading ${p.temps[i].val} → ${v} °C (reason: ${r})`);Object.assign(p.temps[i],{val:v,edited:r});if(v>=FEV)p.rec=false;toast('Entry updated','ok');close();render()}
+function visit(id,urg){if(!can('doctor'))return;const p=G(id),no=!hasT(p);
+modal(`<h2>${urg?'Urgent visit':'Visit'} · ${p.name}</h2>${no?'<div class="banner wa">Warning: today’s temperature has not been recorded. Urgent visits are allowed, otherwise please wait for the nurse.</div>':`<div class="banner ok">Today: ${eff(p,TD).val} °C · no-fever days ${Math.min(streak(p),3)}/3</div>`}<label>Medical notes</label><textarea id="vn" rows="3"></textarea><label>Treatment details</label><input id="vt" value="${p.treatment}"><p class="row"><button class="p" onclick="saveVisit('${id}',${urg})">Save visit</button><button onclick="closeM()">Cancel</button></p>`)}
+function saveVisit(id,u){const p=G(id),n=$('vn').value.trim();if(!n)return toast('Add a medical note','er');p.visits.push({day:TD,by:S.name,note:n,urgent:!!u});p.treatment=$('vt').value||p.treatment;log(`${u?'Urgent visit':'Visit'} for ${p.name}: ${n}`);close();toast('Visit saved','ok');render()}
+function recommend(id){if(!can('doctor'))return;const p=G(id);if(!elig(p))return toast('Needs 3 full fever-free days','er');p.rec=true;log('Recommended discharge for '+p.name);toast('Discharge recommended','ok');render()}
+function admit(){if(!can('admin'))return;const n=$('an').value.trim(),a=+$('aa').value,b=$('ab').value;if(adm().length>=74)return toast('Facility full: 74 of 74 beds in use','er');
+if(!n||!a||!b)return toast('Name, age and bed are required','er');if(adm().some(p=>p.bed==b))return toast('That bed is already taken','er');
+const p={id:'P-'+(NID++),name:n,age:a,bed:b,st:'admitted',temps:[],visits:[],treatment:'To be decided',rec:false};P.push(p);log(`Admitted ${n} (${p.id}) to bed ${b}`);toast('Patient admitted with ID '+p.id,'ok');render()}
+function discharge(id){if(!can('admin'))return;const p=G(id);if(!p.rec||!elig(p))return toast('Needs doctor approval and 3 fever-free days','er');p.st='discharged';log(`Discharged ${p.name} from bed ${p.bed}, bed freed`);p.bed=null;toast('Discharged. Bed is now available','ok');render()}
+function death(){if(!can('admin'))return;const p=G($('dp').value);if(!p||!confirm('Record death of '+p.name+'?'))return;p.st='deceased';log(`Recorded death of ${p.name}, bed ${p.bed} freed`);p.bed=null;render()}
+seed();render();
+</script></body></html>
